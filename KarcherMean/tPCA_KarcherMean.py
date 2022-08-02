@@ -91,7 +91,7 @@ class fdacurve:
         self.q = q
         self.beta = beta1
 
-    def karcher_mean(self, parallel=False, cores=-1, method="DP"):
+    def karcher_mean(self, parallel=True, cores=-1, method="DP"):
         """
         This calculates the mean of a set of curves
         :param parallel: run in parallel (default = F)
@@ -189,7 +189,7 @@ class fdacurve:
 
         return
 
-    def srvf_align(self, parallel=False, cores=-1, method="DP"):
+    def srvf_align(self, parallel=True, cores=-1, method="DP"):
         """
         This aligns a set of curves to the mean and computes mean if not computed
         :param parallel: run in parallel (default = F)
@@ -316,7 +316,7 @@ def align(sample, open_closed="C", PC=3, scaleCurve=False, returnDF=1):
 def formatData(dataFrame, varName="Name", xName="X", yName="Y"):
     # Pandas dataframe should have a column called "Name", "X","Y"
 
-    names = np.unique(dataFrame[varName])
+    names = pd.unique(dataFrame[varName])
 
     cont_length = len(dataFrame[dataFrame[varName] == names[0]][xName])
     total_cont = len(names)

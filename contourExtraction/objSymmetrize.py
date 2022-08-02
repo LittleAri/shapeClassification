@@ -419,12 +419,17 @@ def edit_ends(x1, y1, x2, y2, xc):
 ###########################################
 
 
-def cut_ends(x, y, proportion=10):
+def cut_ends(x, y, proportion=10, which_ends="both"):
     # The aim of this function is to cater for photography-angle issues. This is used if the inside of the mouth
     # of a vase is showing and if the base is more curves than straight. The function creates straight, horizontal
     # cuts and the top and bottom of the vase to cater for this.
     # Input: x and y coordinates of vase contour.
     # Output: updated x and y coordinates with the top and bases cut.
+
+    """
+    Note: which_ends refers to the end of the contour you wish to cut. The default is both the base and the
+    and the mouth, but this can be adjusted to which_ends='base' if only base-chopping is desired.
+    """
 
     eps = (max(y) - min(y)) / proportion
     yub = max(y) - eps
@@ -454,6 +459,9 @@ def cut_ends(x, y, proportion=10):
         # No cut at the start.
         new_x.extend(x[cuts[mins[0]] : cuts[mins[1]] + 1])
         new_y.extend(y[cuts[mins[0]] : cuts[mins[1]] + 1])
+        if which_ends == "base":
+            new_x.extend(x[cuts[mins[1]] + 1 : cuts[mins[2]]])
+            new_y.extend(y[cuts[mins[1]] + 1 : cuts[mins[2]]])
         # Make first cut.
         new_x.extend(x[cuts[mins[2]] : cuts[mins[3]] + 1])
         new_y.extend(y[cuts[mins[2]] : cuts[mins[3]] + 1])
@@ -537,6 +545,7 @@ def symmetrize(
     rep=0,
     KarcherMeanScale=True,
     cutEnds=True,
+    cutEnds_option="both",
     reparamPoints=250,
     scaledHeightWidth=3,
     scaleDirection="both",
@@ -621,9 +630,11 @@ def symmetrize(
         new_x.append(new_x[0])
         new_y.append(new_y[0])
 
-    # 13) Rescale and reparam new coords so that they have 139 points.
+    # 13) Rescale and reparam new coords so that they have fixed amount of points.
     if cutEnds == True:
-        new_x, new_y = cut_ends(new_x, new_y, proportion=proportion)
+        new_x, new_y = cut_ends(
+            new_x, new_y, proportion=proportion, which_ends=cutEnds_option
+        )
     new_xs, new_ys = rescale(
         np.array(new_x),
         np.array(new_y),
@@ -692,8 +703,8 @@ def procrustes(F1, F2, scaling=True, rotation=True, reflection=True):
     ny, my = F2.shape
 
     # Scaling
-    sF1 = np.sum(F1_0 ** 2)
-    sF2 = np.sum(F2_0 ** 2)
+    sF1 = np.sum(F1_0**2)
+    sF2 = np.sum(F2_0**2)
 
     F1_0 /= np.sqrt(sF1)
     F2_0 /= np.sqrt(sF2)
