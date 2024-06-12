@@ -23,7 +23,7 @@ from numpy import (
 from numpy.random import randn
 import fdasrsf.utility_functions as uf
 import collections
-import cv2 as cv
+#import cv2 as cv
 from scipy import interpolate
 from scipy.interpolate import interp1d
 from joblib import Parallel, delayed
@@ -392,9 +392,9 @@ def edit_ends(x1, y1, x2, y2, xc):
 
     new_Lx.append(xc)
     new_Ly.append(yL[0])
-
-    new_Lx.extend(list(np.array(list(xL))[list(np.where(xL < xc)[0])]))
-    new_Ly.extend(list(np.array(list(yL))[list(np.where(xL < xc)[0])]))
+    
+    new_Lx.extend(list(np.array(list(xL))[list(np.where(np.array(xL) < xc)[0])]))
+    new_Ly.extend(list(np.array(list(yL))[list(np.where(np.array(xL) < xc)[0])]))
 
     new_Lx.append(xc)
     new_Ly.append(yL[-1])
@@ -405,8 +405,8 @@ def edit_ends(x1, y1, x2, y2, xc):
     new_Rx.append(xc)
     new_Ry.append(yR[0])
 
-    new_Rx.extend(list(np.array(list(xR))[list(np.where(xR > xc)[0])]))
-    new_Ry.extend(list(np.array(list(yR))[list(np.where(xR > xc)[0])]))
+    new_Rx.extend(list(np.array(list(xR))[list(np.where(np.array(xR) > xc)[0])]))
+    new_Ry.extend(list(np.array(list(yR))[list(np.where(np.array(xR) > xc)[0])]))
 
     new_Rx.append(xc)
     new_Ry.append(yR[-1])

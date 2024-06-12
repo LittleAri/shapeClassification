@@ -34,6 +34,8 @@ def KNN_distMat(
     neighbours=[5],
     f1Average="weighted",
     inMeta=True,
+    nameVariable="Name",
+    classVariable="Class"
 ):
     # This function runs a KNN classifier on a training and testing set.
     # K is equal to the neighbours variable.
@@ -52,7 +54,7 @@ def KNN_distMat(
         classDetails = {}
         for name in trainingNames:
             classDetails.update(
-                {name: {"Class": list(metaData[metaData["Name"] == name]["Class"])[0]}}
+                {name: {"Class": list(metaData[metaData[nameVariable] == name][classVariable])[0]}}
             )
 
         for testName in testingNames:
@@ -78,7 +80,7 @@ def KNN_distMat(
             for testName in testingNames:
                 pred = classType(classDetails[testName]["Class"])
                 act = classType(
-                    list(metaData[metaData["Name"] == testName]["Class"])[0]
+                    list(metaData[metaData[nameVariable] == testName][classVariable])[0]
                 )
                 actual.append(act)
                 predicted.append(pred)
@@ -131,6 +133,8 @@ def KNN_Bootstrapping(
     classType=str,
     trainingSetSize=12,
     trainingProportion=0,
+    nameVariable="Name",
+    classVariable="Class"
 ):
 
     all_scores = np.zeros((1, nBootstrapping))
@@ -150,12 +154,12 @@ def KNN_Bootstrapping(
         test_names = []
 
         for n, sp in enumerate(classes):
-            inds = list(table[table["Class"] == sp]["Index"])
+            inds = list(table[table[classVariable] == sp]["Index"])
             if trainingProportion != 0:
                 trainingSetSize = int(len(inds) * trainingProportion)
             randinds = random.sample(inds, trainingSetSize)
-            testnames = list(table["Name"][list(np.setdiff1d(inds, randinds))])
-            trainnames = list(table["Name"][randinds])
+            testnames = list(table[nameVariable][list(np.setdiff1d(inds, randinds))])
+            trainnames = list(table[nameVariable][randinds])
             train_names.extend(trainnames)
             test_names.extend(testnames)
         all_training.append(train_names)
@@ -169,6 +173,8 @@ def KNN_Bootstrapping(
             neighbours=kNeighbours,
             f1Average="weighted",
             inMeta=True,
+            nameVariable=nameVariable,
+            classVariable=classVariable
         )
 
         all_scores[0, nb] = f1Score
@@ -178,7 +184,7 @@ def KNN_Bootstrapping(
         if f1Score >= top_score:
             top_score = deepcopy(f1Score)
             top_results = deepcopy(results)
-            top_trainingTesting = deepcopy([train_names, test_names])
+            top_trainingTesting = {'train':train_names,'test':test_names}
 
     all_results = {}
     all_results["topF1Score"] = top_score
