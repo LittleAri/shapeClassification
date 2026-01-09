@@ -288,7 +288,7 @@ def karcher_cov(v):
 #################
 
 
-def align(sample, open_closed="C", PC=3, scaleCurve=False, returnDF=1):
+def align(sample, open_closed="C", PC=3, scaleCurve=False, returnDF=1, maxVar=10):
     beta = deepcopy(sample)
     obj_c = fdacurve(beta, mode=open_closed, scale=scaleCurve)
     obj_c.srvf_align()
@@ -297,6 +297,9 @@ def align(sample, open_closed="C", PC=3, scaleCurve=False, returnDF=1):
     aligned = obj_c.betan
     cov = karcher_cov(obj_c.v)
     coef = shape_pca(obj_c.v, cov, obj_c.beta, no=PC)
+    _, s, _ = svd(cov)
+    var = np.cumsum(s) / np.sum(s) * 100
+    var = var[: max([maxVar, PC])]
     mnx, mny = rescale(mn[0], mn[1])
     mn[0] = mnx
     mn[1] = mny
@@ -310,7 +313,7 @@ def align(sample, open_closed="C", PC=3, scaleCurve=False, returnDF=1):
         tpca = deepcopy(coef)
         karchermean = deepcopy(mn)
 
-    return aligned, karchermean, tpca
+    return aligned, karchermean, tpca, var
 
 
 def formatData(dataFrame, varName="Name", xName="X", yName="Y"):
