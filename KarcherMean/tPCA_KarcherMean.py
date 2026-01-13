@@ -246,7 +246,7 @@ def karcher_calc(beta, q, betamean, mu, basis, closed, method):
     return (v, d)
 
 
-def shape_pca(v, C, beta, no=3):
+def shape_pca(v, C, beta, q_mean, no=3, pd_plots=False):
     """
     Computes principal direction of variation specified by no. N is
     Number of shapes away from mean. Creates 2*N+1 shape sequence
@@ -266,7 +266,26 @@ def shape_pca(v, C, beta, no=3):
         Utmp = U.T
         x[:, ii] = Utmp.dot((tmpv.flatten() - VM.flatten()))
 
-    return x
+    # Get PD plots:
+    pd_results = []
+    if pd_plots:
+        VM = VM.flatten()
+        for j in range(0, no):
+            for i in range(1, 11):
+
+                tmp = VM + 0.5 * (i - 5) * sqrt(s[j]) * U[:, j]
+                m, n = q_mean.shape
+                tmp_scale = 1
+                v1 = tmp.reshape(m, n)
+                q2n = cf.elastic_shooting(q_mean, v1, 1)
+
+                p = cf.q_to_curve(q2n, tmp_scale)
+
+                mv = 0.2
+
+                pd_results.append([mv * i + p[0, :], p[1, :]])
+
+    return x, pd_results
 
 
 def karcher_cov(v):
@@ -288,15 +307,26 @@ def karcher_cov(v):
 #################
 
 
-def align(sample, open_closed="C", PC=3, scaleCurve=False, returnDF=1, maxVar=10):
+def align(
+    sample,
+    open_closed="C",
+    PC=3,
+    scaleCurve=False,
+    returnDF=1,
+    maxVar=10,
+    pd_plots=False,
+):
     beta = deepcopy(sample)
     obj_c = fdacurve(beta, mode=open_closed, scale=scaleCurve)
     obj_c.srvf_align()
     obj_c.karcher_mean
+    q_mean = obj_c.q_mean
     mn = obj_c.beta_mean
     aligned = obj_c.betan
     cov = karcher_cov(obj_c.v)
-    coef = shape_pca(obj_c.v, cov, obj_c.beta, no=PC)
+    coef, pd_results = shape_pca(
+        obj_c.v, cov, obj_c.beta, q_mean, no=PC, pd_plots=pd_plots
+    )
     _, s, _ = svd(cov)
     var = np.cumsum(s) / np.sum(s) * 100
     var = var[: max([maxVar, PC])]
@@ -312,8 +342,10 @@ def align(sample, open_closed="C", PC=3, scaleCurve=False, returnDF=1, maxVar=10
     else:
         tpca = deepcopy(coef)
         karchermean = deepcopy(mn)
-
-    return aligned, karchermean, tpca, var
+    if pd_plots:
+        return aligned, karchermean, tpca, var, pd_results
+    else:
+        return aligned, karchermean, tpca, var
 
 
 def formatData(dataFrame, varName="Name", xName="X", yName="Y"):
